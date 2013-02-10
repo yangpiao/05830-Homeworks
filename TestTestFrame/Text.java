@@ -33,8 +33,24 @@ public class Text implements GraphicalObject {
 
     public void setText(String text) {
         if (!this.text.equals(text)) {
+            Rectangle2D oldBounds = bounds;
             this.text = text;
             bounds = font.getStringBounds(text, frc);
+            if (group != null) {
+                int oldW = (int)oldBounds.getWidth(); 
+                int oldH = (int)oldBounds.getHeight();
+                int oldX = (int)oldBounds.getX();
+                int oldY = (int)oldBounds.getY();
+                int width = (int)bounds.getWidth(); 
+                int height = (int)bounds.getHeight();
+                int bx = (int)bounds.getX();
+                int by = (int)bounds.getY();
+                group.damage(new BoundaryRectangle(x + oldX, y + oldY, 
+                        oldW, oldH));
+                group.damage(new BoundaryRectangle(x + bx, y + by, 
+                        width, height));
+                group.resizeChild(this);
+            }
         }
     }
 
@@ -43,7 +59,22 @@ public class Text implements GraphicalObject {
     }
 
     public void setX(int x) {
-        this.x = x;
+        if (this.x != x) {
+            if (group != null) {
+                int width = (int)bounds.getWidth();
+                int height = (int)bounds.getHeight();
+                int bx = (int)bounds.getX();
+                int by = (int)bounds.getY();
+                group.damage(new BoundaryRectangle(this.x + bx, y + by,
+                        width, height));
+                group.damage(new BoundaryRectangle(x + bx, y + by, 
+                        width, height));
+            }
+            this.x = x;
+            if (group != null) {
+                group.resizeChild(this);
+            }
+        }
     }
 
     public int getY() {
@@ -51,7 +82,22 @@ public class Text implements GraphicalObject {
     }
 
     public void setY(int y) {
-        this.y = y;
+        if (this.y != y) {
+            if (group != null) {
+                int width = (int)bounds.getWidth(); 
+                int height = (int)bounds.getHeight();
+                int bx = (int)bounds.getX();
+                int by = (int)bounds.getY();
+                group.damage(new BoundaryRectangle(x + bx, this.y + by,
+                        width, height));
+                group.damage(new BoundaryRectangle(x + bx, y + by,
+                        width, height));
+            }
+            this.y = y;
+            if (group != null) {
+                group.resizeChild(this);
+            }
+        }
     }
 
     public Font getFont() {
@@ -59,7 +105,26 @@ public class Text implements GraphicalObject {
     }
 
     public void setFont(Font font) {
-        this.font = font;
+        if (this.font != font) {
+            Rectangle2D oldBounds = bounds;
+            this.font = font;
+            bounds = font.getStringBounds(text, frc);
+            if (group != null) {
+                int oldW = (int)oldBounds.getWidth(); 
+                int oldH = (int)oldBounds.getHeight();
+                int oldX = (int)oldBounds.getX();
+                int oldY = (int)oldBounds.getY();
+                int width = (int)bounds.getWidth(); 
+                int height = (int)bounds.getHeight();
+                int bx = (int)bounds.getX();
+                int by = (int)bounds.getY();
+                group.damage(new BoundaryRectangle(x + oldX, y + oldY, 
+                        oldW, oldH));
+                group.damage(new BoundaryRectangle(x + bx, y + by, 
+                        width, height));
+                group.resizeChild(this);
+            }
+        }
     }
 
     public Color getColor() {
@@ -67,7 +132,16 @@ public class Text implements GraphicalObject {
     }
 
     public void setColor(Color color) {
-        this.color = color;
+        if (this.color != color) {
+            this.color = color;
+            if (group != null) {
+                int w = (int)bounds.getWidth(); 
+                int h = (int)bounds.getHeight();
+                int bx = (int)bounds.getX();
+                int by = (int)bounds.getY();
+                group.damage(new BoundaryRectangle(x + bx, y + by, w, h));
+            }
+        }
     }
 
     @Override
@@ -88,8 +162,23 @@ public class Text implements GraphicalObject {
 
     @Override
     public void moveTo(int x, int y) {
-        this.x = x - (int)bounds.getX();
-        this.y = y - (int)bounds.getY();
+        int bx = (int)bounds.getX();
+        int by = (int)bounds.getY();
+        if (this.x != x - bx || this.y != y - by) {
+            int w = (int)bounds.getWidth(); 
+            int h = (int)bounds.getHeight();
+            if (group != null) {
+                group.damage(new BoundaryRectangle(this.x + bx, 
+                        this.y + by, w, h));
+                group.damage(new BoundaryRectangle(x + bx, y + by, w, h));
+            }
+            this.x = x - bx;
+            this.y = y - by;
+            if (group != null) {
+                group.resizeChild(this);
+            }
+        }
+
     }
 
     @Override

@@ -1,8 +1,11 @@
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 
 
 public class LayoutGroup implements Group {
@@ -12,9 +15,58 @@ public class LayoutGroup implements Group {
     private int height;
     private int layout;
     private int offset;
+    private Group group = null;
+    private ArrayList<GraphicalObject> children = 
+            new ArrayList<GraphicalObject>();
+    private BoundaryRectangle damagedArea = null;
+    private boolean layoutChanged = false;
+    
+    private void changeDamagedArea(BoundaryRectangle r) {
+        if (damagedArea == null) {
+            damagedArea = new BoundaryRectangle(r);
+        } else {
+            damagedArea.add(r);
+        }
+        
+        // if part or all of the damaged area is outside the group, resize
+        Rectangle groupArea = new Rectangle(0, 0, width, height);
+        Rectangle resized = damagedArea.intersection(groupArea);
+        damagedArea.setLocation(resized.x, resized.y);
+        damagedArea.setSize(resized.width, resized.height);
+    }
+    
+    private void changeLayout() {
+        // NOTE: do not wrap when children overflow
+        ListIterator<GraphicalObject> it = children.listIterator();
+        if (!it.hasNext()) return;
+        GraphicalObject next = it.next();
+        int x = 0, y = 0;
+        if (layout == HORIZONTAL) {
+            next.moveTo(x, y);
+            BoundaryRectangle r = next.getBoundingBox();
+            x += r.width + offset;
+            while (it.hasNext()) {
+                next = it.next();
+                next.moveTo(x, y);
+                r = next.getBoundingBox();
+                x += r.width + offset;
+            }
+        } else if (layout == VERTICAL) {
+            next.moveTo(x, y);
+            BoundaryRectangle r = next.getBoundingBox();
+            x += r.width + offset;
+            while (it.hasNext()) {
+                next = it.next();
+                next.moveTo(x, y);
+                r = next.getBoundingBox();
+                x += r.width + offset;
+            }
+        }
+        layoutChanged = false;
+    }
     
     public LayoutGroup() {
-        this(0, 0, 0, 0, 0, 0);
+        this(0, 0, 0, 0, HORIZONTAL, 0);
     }
     
     public LayoutGroup(int x, int y, int width, int height, 
@@ -32,7 +84,19 @@ public class LayoutGroup implements Group {
     }
 
     public void setX(int x) {
-        this.x = x;
+        if (this.x != x) {
+            if (group != null) {
+                group.damage(new BoundaryRectangle(this.x, y, width, height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
+            // bounds.x += x - this.x;
+            this.x = x;
+            // reset damaged area
+            damagedArea = null;
+            if (group != null) {
+                group.resizeChild(this);
+            }
+        }
     }
 
     public int getY() {
@@ -40,7 +104,19 @@ public class LayoutGroup implements Group {
     }
 
     public void setY(int y) {
-        this.y = y;
+        if (this.y != y) {
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, this.y, width, height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
+            // bounds.y += y - this.y;
+            this.y = y;
+            // reset damaged area
+            damagedArea = null;
+            if (group != null) {
+                group.resizeChild(this);
+            }
+        }
     }
 
     public int getWidth() {
@@ -48,7 +124,21 @@ public class LayoutGroup implements Group {
     }
 
     public void setWidth(int width) {
-        this.width = width;
+        if (this.width != width) {
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, this.width, height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
+            // if (x + width < bounds.x + bounds.width) {
+            //     bounds.width = width + x - bounds.x;
+            // }
+            this.width = width;
+            // reset damaged area
+            damagedArea = null;
+            if (group != null) {
+                group.resizeChild(this);
+            }
+        }
     }
 
     public int getHeight() {
@@ -56,7 +146,21 @@ public class LayoutGroup implements Group {
     }
 
     public void setHeight(int height) {
-        this.height = height;
+        if (this.height != height) {
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, width, this.height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
+            // if (y + height < bounds.y + bounds.height) {
+            //     bounds.height = height + y - bounds.y;
+            // }
+            this.height = height;
+            // reset damaged area
+            damagedArea = null;
+            if (group != null) {
+                group.resizeChild(this);
+            }
+        }
     }
 
     public int getLayout() {
@@ -64,7 +168,14 @@ public class LayoutGroup implements Group {
     }
 
     public void setLayout(int layout) {
-        this.layout = layout;
+        if (this.layout != layout) {
+            this.layout = layout;
+            // changeLayout();
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, width, height));
+                group.resizeChild(this);
+            }
+        }
     }
 
     public int getOffset() {
@@ -72,43 +183,94 @@ public class LayoutGroup implements Group {
     }
 
     public void setOffset(int offset) {
-        this.offset = offset;
+        if (this.offset != offset) {
+            this.offset = offset;
+            // changeLayout();
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, width, height));
+                group.resizeChild(this);
+            }
+        }
     }
 
     @Override
     public void draw(Graphics2D graphics, Shape clipShape) {
-        // TODO Auto-generated method stub
-
+        if (layoutChanged) changeLayout();
+        
+        // if damagedArea is not null, only draw inside the area
+        Shape drawArea;
+        if (damagedArea != null) {
+            // transform the coordinates of the damaged area
+            drawArea = new BoundaryRectangle(damagedArea.x + x, 
+                    damagedArea.y + y, damagedArea.width, damagedArea.height);
+        } else {
+            drawArea = clipShape;
+        }
+        graphics.setClip(drawArea);
+        
+        // draw all the children
+        for (GraphicalObject child : children) {
+            Rectangle r = child.getBoundingBox();
+            int oldX = r.x, oldY = r.y;
+            // transform the coordinates
+            child.moveTo(x + oldX, y + oldY);
+            child.draw(graphics, drawArea);
+            // change the coordinates back
+            child.moveTo(oldX, oldY);
+        }
+        
+        // reset the damaged area after drawing
+        damagedArea = null;
     }
 
     @Override
     public BoundaryRectangle getBoundingBox() {
-        // TODO Auto-generated method stub
-        return null;
+        if (layoutChanged) changeLayout();
+        BoundaryRectangle box = new BoundaryRectangle(0, 0, 0, 0);
+        for (GraphicalObject child : children) {
+            BoundaryRectangle r = child.getBoundingBox();
+            r.setLocation(r.x + x, r.y + y);
+            box.add(r);
+        }
+        // if part or all of the bounding box is outside the group, resize
+        Rectangle groupArea = new Rectangle(x, y, width, height);
+        Rectangle resized = box.intersection(groupArea);
+        box.setLocation(resized.x, resized.y);
+        box.setSize(resized.width, resized.height);
+        return box;
     }
 
     @Override
     public void moveTo(int x, int y) {
-        // TODO Auto-generated method stub
-
+        if (this.x != x || this.y != y) {
+            if (group != null) {
+                group.damage(new BoundaryRectangle(this.x, this.y, 
+                        width, height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
+            this.x = x;
+            this.y = y;
+            // reset damaged area
+            damagedArea = null;
+            if (group != null) {
+                group.resizeChild(this);
+            }
+        }
     }
 
     @Override
     public Group getGroup() {
-        // TODO Auto-generated method stub
-        return null;
+        return group;
     }
 
     @Override
     public void setGroup(Group group) {
-        // TODO Auto-generated method stub
-
+        this.group = group;
     }
 
     @Override
     public boolean contains(int x, int y) {
-        // TODO Auto-generated method stub
-        return false;
+        return getBoundingBox().contains(x, y);
     }
 
     @Override
@@ -126,56 +288,136 @@ public class LayoutGroup implements Group {
     @Override
     public void addChild(GraphicalObject child)
             throws AlreadyHasGroupRunTimeException {
-        // TODO Auto-generated method stub
-
+        if (child.getGroup() != null) {
+            throw new AlreadyHasGroupRunTimeException(
+                    "Object has already been added to a group.");
+        }
+        child.setGroup(this);
+        children.add(child);
+        changeLayout();
+        // update damaged area
+        BoundaryRectangle r = child.getBoundingBox();
+        changeDamagedArea(r);
+        if (group != null) {
+            Rectangle groupArea = new Rectangle(0, 0, width, height);
+            Rectangle resized = r.intersection(groupArea);
+            r.setLocation(resized.x + x, resized.y + y);
+            r.setSize(resized.width, resized.height);
+            group.damage(r);
+            group.resizeChild(this);
+        }
     }
 
     @Override
     public void removeChild(GraphicalObject child) {
-        // TODO Auto-generated method stub
-
+        child.setGroup(null);
+        children.remove(child);
+        changeLayout();
+        // update damaged area
+        damagedArea.setLocation(0, 0);
+        damagedArea.setSize(width, height);
+        if (group != null) {
+            group.damage(new BoundaryRectangle(x, y, width, height));
+            group.resizeChild(this);
+        }
     }
 
     @Override
     public void resizeChild(GraphicalObject child) {
-        // TODO Auto-generated method stub
-
+        layoutChanged = true;
+        if (group != null) {
+            group.resizeChild(this);
+        }
     }
 
     @Override
     public void bringChildToFront(GraphicalObject child) {
-        // TODO Auto-generated method stub
-
+        if (child.getGroup() != this) {
+            return;
+        }
+        // move the child to the end of the list
+        children.remove(child);
+        children.add(child);
+        changeLayout();
+        if (group != null) {
+            group.damage(new BoundaryRectangle(x, y, width, height));
+        }
     }
 
     @Override
     public void resizeToChildren() {
-        // TODO Auto-generated method stub
-
+        if (children.isEmpty()) {
+            return;
+        }
+        // compute the width and height
+        int x1, y1, x2, y2, cx1, cy1, cx2, cy2;
+        ListIterator<GraphicalObject> it = children.listIterator();
+        GraphicalObject next = it.next();
+        Rectangle r = next.getBoundingBox();
+        x1 = r.x;
+        y1 = r.y;
+        x2 = x1 + r.width - 1;
+        y2 = y1 + r.height - 1;
+        while (it.hasNext()) {
+            next = it.next();
+            r = next.getBoundingBox();
+            cx1 = r.x;
+            cy1 = r.y;
+            cx2 = cx1 + r.width - 1;
+            cy2 = cy1 + r.height - 1;
+            if (cx2 > x2) {
+                x2 = cx2;
+            }
+            if (cy2 > y2) {
+                y2 = cy2;
+            }
+        }
+        // resize
+        width = x2;
+        height = y2;
     }
 
     @Override
     public void damage(BoundaryRectangle rectangle) {
-        // TODO Auto-generated method stub
-
+        layoutChanged = true;
+        if (group != null) {
+            group.damage(new BoundaryRectangle(x, y, width, height));
+        }
+        
+        /*
+        // update damaged area
+        changeDamagedArea(rectangle);
+        
+        // if part or all of the damaged area is outside the group, resize
+        Rectangle groupArea = new Rectangle(0, 0, width, height);
+        Rectangle resized = rectangle.intersection(groupArea);
+        if (group != null) {
+            // transform the coordinates and propagate to the parent group
+            group.damage(new BoundaryRectangle(resized.x + x, resized.y + y, 
+                    resized.width, resized.height));
+        }
+        */
     }
 
     @Override
     public List<GraphicalObject> getChildren() {
-        // TODO Auto-generated method stub
-        return null;
+        List<GraphicalObject> copy = new ArrayList<GraphicalObject>();
+        int end = children.size() - 1;
+        ListIterator<GraphicalObject> it = children.listIterator(end);
+        while (it.hasPrevious()) {
+            copy.add(it.previous());
+        }
+        return copy;
     }
 
     @Override
     public Point parentToChild(Point pt) {
-        // TODO Auto-generated method stub
-        return null;
+        return new Point(pt.x - x, pt.y - y);
     }
 
     @Override
     public Point childToParent(Point pt) {
-        // TODO Auto-generated method stub
-        return null;
+        return new Point(pt.x + x, pt.y + y);
     }
 
 }

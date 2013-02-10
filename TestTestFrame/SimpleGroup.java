@@ -15,7 +15,6 @@ public class SimpleGroup implements Group {
     private ArrayList<GraphicalObject> children = 
             new ArrayList<GraphicalObject>();
     private BoundaryRectangle damagedArea = null;
-    // private BoundaryRectangle bounds = new BoundaryRectangle(0, 0, 0, 0);
     
     private void changeDamagedArea(BoundaryRectangle r) {
         if (damagedArea == null) {
@@ -23,6 +22,12 @@ public class SimpleGroup implements Group {
         } else {
             damagedArea.add(r);
         }
+        
+        // if part or all of the damaged area is outside the group, resize
+        Rectangle groupArea = new Rectangle(0, 0, width, height);
+        Rectangle resized = damagedArea.intersection(groupArea);
+        damagedArea.setLocation(resized.x, resized.y);
+        damagedArea.setSize(resized.width, resized.height);
     }
 
     public SimpleGroup() {
@@ -35,6 +40,13 @@ public class SimpleGroup implements Group {
         this.width = width;
         this.height = height;
     }
+    
+    // test
+    public BoundaryRectangle getDamagedArea() {
+        BoundaryRectangle r = new BoundaryRectangle(damagedArea.x + x,
+                damagedArea.y + y, damagedArea.width, damagedArea.height);
+        return r;
+    }
 
     public int getX() {
         return x;
@@ -42,7 +54,10 @@ public class SimpleGroup implements Group {
 
     public void setX(int x) {
         if (this.x != x) {
-            // bounds.x += x - this.x;
+            if (group != null) {
+                group.damage(new BoundaryRectangle(this.x, y, width, height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
             this.x = x;
             // reset damaged area
             damagedArea = null;
@@ -58,7 +73,10 @@ public class SimpleGroup implements Group {
 
     public void setY(int y) {
         if (this.y != y) {
-            // bounds.y += y - this.y;
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, this.y, width, height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
             this.y = y;
             // reset damaged area
             damagedArea = null;
@@ -74,9 +92,10 @@ public class SimpleGroup implements Group {
 
     public void setWidth(int width) {
         if (this.width != width) {
-            // if (x + width < bounds.x + bounds.width) {
-            //     bounds.width = width + x - bounds.x;
-            // }
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, this.width, height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
             this.width = width;
             // reset damaged area
             damagedArea = null;
@@ -92,9 +111,10 @@ public class SimpleGroup implements Group {
 
     public void setHeight(int height) {
         if (this.height != height) {
-            // if (y + height < bounds.y + bounds.height) {
-            //     bounds.height = height + y - bounds.y;
-            // }
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, width, this.height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
             this.height = height;
             // reset damaged area
             damagedArea = null;
@@ -107,16 +127,15 @@ public class SimpleGroup implements Group {
     @Override
     public void draw(Graphics2D graphics, Shape clipShape) {
         // if damagedArea is not null, only draw inside the area
-        graphics.setClip(clipShape);
-        
-        // transform the coordinates of the damaged area
         Shape drawArea;
         if (damagedArea != null) {
-            damagedArea.setLocation(damagedArea.x + x, damagedArea.y + y);
-            drawArea = damagedArea;
+            // transform the coordinates of the damaged area
+            drawArea = new BoundaryRectangle(damagedArea.x + x, 
+                    damagedArea.y + y, damagedArea.width, damagedArea.height);
         } else {
             drawArea = clipShape;
         }
+        graphics.setClip(drawArea);
         
         // draw all the children
         for (GraphicalObject child : children) {
@@ -142,14 +161,22 @@ public class SimpleGroup implements Group {
             r.setLocation(r.x + x, r.y + y);
             box.add(r);
         }
+        // if part or all of the bounding box is outside the group, resize
+        Rectangle groupArea = new Rectangle(x, y, width, height);
+        Rectangle resized = box.intersection(groupArea);
+        box.setLocation(resized.x, resized.y);
+        box.setSize(resized.width, resized.height);
         return box;
     }
 
     @Override
     public void moveTo(int x, int y) {
         if (this.x != x || this.y != y) {
-            // bounds.x += x - this.x;
-            // bounds.y += y - this.y;
+            if (group != null) {
+                group.damage(new BoundaryRectangle(this.x, this.y, 
+                        width, height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
             this.x = x;
             this.y = y;
             // reset damaged area
@@ -196,15 +223,21 @@ public class SimpleGroup implements Group {
         }
         child.setGroup(this);
         children.add(child);
-        // update damaged area
-        changeDamagedArea(child.getBoundingBox());
         /*
-        // update bounds
-        Rectangle r = child.getBoundingBox();
-        r.setLocation(r.x + x, r.y + y);
-        bounds.add(r);
+        if (group != null && damagedArea != null) {
+            group.damage(new BoundaryRectangle(damagedArea.x + x, 
+                    damagedArea.y + y, damagedArea.width, damagedArea.height));
+        }
         */
+        // update damaged area
+        BoundaryRectangle r = child.getBoundingBox();
+        changeDamagedArea(r);
         if (group != null) {
+            Rectangle groupArea = new Rectangle(0, 0, width, height);
+            Rectangle resized = r.intersection(groupArea);
+            r.setLocation(resized.x + x, resized.y + y);
+            r.setSize(resized.width, resized.height);
+            group.damage(r);
             group.resizeChild(this);
         }
     }
@@ -213,20 +246,21 @@ public class SimpleGroup implements Group {
     public void removeChild(GraphicalObject child) {
         child.setGroup(null);
         children.remove(child);
-        // update damaged area
-        changeDamagedArea(child.getBoundingBox());
-        
         /*
-        // update bounds
-        bounds.setLocation(0, 0);
-        bounds.setSize(0, 0);
-        for (GraphicalObject c : children) {
-            Rectangle r = c.getBoundingBox();
-            r.setLocation(r.x + x, r.y + y);
-            bounds.add(r);
+        if (group != null && damagedArea != null) {
+            group.damage(new BoundaryRectangle(damagedArea.x + x, 
+                    damagedArea.y + y, damagedArea.width, damagedArea.height));
         }
         */
+        // update damaged area
+        BoundaryRectangle r = child.getBoundingBox();
+        changeDamagedArea(r);
         if (group != null) {
+            Rectangle groupArea = new Rectangle(0, 0, width, height);
+            Rectangle resized = r.intersection(groupArea);
+            r.setLocation(resized.x + x, resized.y + y);
+            r.setSize(resized.width, resized.height);
+            group.damage(r);
             group.resizeChild(this);
         }
     }
@@ -236,16 +270,6 @@ public class SimpleGroup implements Group {
         if (group != null) {
             group.resizeChild(this);
         }
-        /*
-        // update bounds
-        bounds.setLocation(0, 0);
-        bounds.setSize(0, 0);
-        for (GraphicalObject c : children) {
-            Rectangle r = c.getBoundingBox();
-            r.setLocation(r.x + x, r.y + y);
-            bounds.add(r);
-        }
-        */
     }
 
     @Override
@@ -256,6 +280,13 @@ public class SimpleGroup implements Group {
         // move the child to the end of the list
         children.remove(child);
         children.add(child);
+        if (group != null) {
+            Rectangle r = child.getBoundingBox();
+            Rectangle groupArea = new Rectangle(0, 0, width, height);
+            Rectangle resized = r.intersection(groupArea);
+            group.damage(new BoundaryRectangle(resized.x + x, resized.y + y, 
+                    resized.width, resized.height));
+        }
     }
 
     @Override
@@ -296,10 +327,13 @@ public class SimpleGroup implements Group {
         // update damaged area
         changeDamagedArea(rectangle);
         
-        if (this.group != null) {
+        // if part or all of the damaged area is outside the group, resize
+        Rectangle groupArea = new Rectangle(0, 0, width, height);
+        Rectangle resized = rectangle.intersection(groupArea);
+        if (group != null) {
             // transform the coordinates and propagate to the parent group
-            group.damage(new BoundaryRectangle(rectangle.x + x, rectangle.y + y, 
-                    rectangle.width, rectangle.height));
+            group.damage(new BoundaryRectangle(resized.x + x, resized.y + y, 
+                    resized.width, resized.height));
         }
     }
 
@@ -309,7 +343,7 @@ public class SimpleGroup implements Group {
         int end = children.size() - 1;
         ListIterator<GraphicalObject> it = children.listIterator(end);
         while (it.hasPrevious()) {
-            copy.add(it.next());
+            copy.add(it.previous());
         }
         return copy;
     }

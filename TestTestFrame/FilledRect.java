@@ -35,8 +35,15 @@ public class FilledRect implements GraphicalObject {
 
     public void setX(int x) {
         if (this.x != x) {
+            if (group != null) {
+                group.damage(new BoundaryRectangle(this.x, y, width, height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
             this.x = x;
             createRect();
+            if (group != null) {
+                group.resizeChild(this);
+            }
         }
     }
 
@@ -46,8 +53,15 @@ public class FilledRect implements GraphicalObject {
 
     public void setY(int y) {
         if (this.y != y) {
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, this.y, width, height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
             this.y = y;
             createRect();
+            if (group != null) {
+                group.resizeChild(this);
+            }
         }
     }
 
@@ -57,8 +71,15 @@ public class FilledRect implements GraphicalObject {
 
     public void setWidth(int width) {
         if (this.width != width) {
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, this.width, height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
             this.width = width;
             createRect();
+            if (group != null) {
+                group.resizeChild(this);
+            }
         }
     }
 
@@ -68,8 +89,15 @@ public class FilledRect implements GraphicalObject {
 
     public void setHeight(int height) {
         if (this.height != height) {
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, width, this.height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
             this.height = height;
             createRect();
+            if (group != null) {
+                group.resizeChild(this);
+            }
         }
     }
 
@@ -78,7 +106,12 @@ public class FilledRect implements GraphicalObject {
     }
 
     public void setColor(Color color) {
-        this.color = color;
+        if (this.color != color) {
+            this.color = color;
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
+        }
     }
 
     @Override
@@ -96,9 +129,17 @@ public class FilledRect implements GraphicalObject {
     @Override
     public void moveTo(int x, int y) {
         if (this.x != x || this.y != y) {
+            if (group != null) {
+                group.damage(new BoundaryRectangle(this.x, this.y, 
+                        width, height));
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
             this.x = x;
             this.y = y;
             createRect();
+            if (group != null) {
+                group.resizeChild(this);
+            }
         }
     }
 

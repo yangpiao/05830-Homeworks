@@ -23,7 +23,16 @@ public class Icon implements GraphicalObject {
     }
 
     public void setImage(Image image) {
-        this.image = image;
+        if (this.image != image) {
+            int ow = this.image.getWidth(null), oh = this.image.getHeight(null);
+            int w = image.getWidth(null), h = image.getHeight(null);
+            this.image = image;
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, ow, oh));
+                group.damage(new BoundaryRectangle(x, y, w, h));
+                group.resizeChild(this);
+            }
+        }
     }
 
     public int getX() {
@@ -31,7 +40,17 @@ public class Icon implements GraphicalObject {
     }
 
     public void setX(int x) {
-        this.x = x;
+        int w = image.getWidth(null), h = image.getHeight(null);
+        if (this.x != x) {
+            if (group != null) {
+                group.damage(new BoundaryRectangle(this.x, y, w, h));
+                group.damage(new BoundaryRectangle(x, y, w, h));
+            }
+            this.x = x;
+            if (group != null) {
+                group.resizeChild(this);
+            }
+        }
     }
 
     public int getY() {
@@ -39,7 +58,17 @@ public class Icon implements GraphicalObject {
     }
 
     public void setY(int y) {
-        this.y = y;
+        int w = image.getWidth(null), h = image.getHeight(null);
+        if (this.y != y) {
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, this.y, w, h));
+                group.damage(new BoundaryRectangle(x, y, w, h));
+            }
+            this.y = y;
+            if (group != null) {
+                group.resizeChild(this);
+            }
+        }
     }
 
     @Override
@@ -56,8 +85,18 @@ public class Icon implements GraphicalObject {
 
     @Override
     public void moveTo(int x, int y) {
-        this.x = x;
-        this.y = y;
+        if (this.x != x || this.y != y) {
+            int w = image.getWidth(null), h = image.getHeight(null);
+            if (group != null) {
+                group.damage(new BoundaryRectangle(this.x, this.y, w, h));
+                group.damage(new BoundaryRectangle(x, y, w, h));
+            }
+            this.x = x;
+            this.y = y;
+            if (group != null) {
+                group.resizeChild(this);
+            }
+        }
     }
 
     @Override

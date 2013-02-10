@@ -55,7 +55,16 @@ public class Line implements GraphicalObject {
     }
 
     public void setX1(int x1) {
-        this.x1 = x1;
+        if (this.x1 != x1) {
+            if (group != null) {
+                group.damage(getBoundingBox());
+            }
+            this.x1 = x1;
+            if (group != null) {
+                group.damage(getBoundingBox());
+                group.resizeChild(this);
+            }
+        }
     }
 
     public int getY1() {
@@ -63,7 +72,16 @@ public class Line implements GraphicalObject {
     }
 
     public void setY1(int y1) {
-        this.y1 = y1;
+        if (this.y1 != y1) {
+            if (group != null) {
+                group.damage(getBoundingBox());
+            }
+            this.y1 = y1;
+            if (group != null) {
+                group.damage(getBoundingBox());
+                group.resizeChild(this);
+            }
+        }
     }
 
     public int getX2() {
@@ -71,7 +89,16 @@ public class Line implements GraphicalObject {
     }
 
     public void setX2(int x2) {
-        this.x2 = x2;
+        if (this.x2 != x2) {
+            if (group != null) {
+                group.damage(getBoundingBox());
+            }
+            this.x2 = x2;
+            if (group != null) {
+                group.damage(getBoundingBox());
+                group.resizeChild(this);
+            }
+        }
     }
 
     public int getY2() {
@@ -79,7 +106,16 @@ public class Line implements GraphicalObject {
     }
 
     public void setY2(int y2) {
-        this.y2 = y2;
+        if (this.y2 != y2) {
+            if (group != null) {
+                group.damage(getBoundingBox());
+            }
+            this.y2 = y2;
+            if (group != null) {
+                group.damage(getBoundingBox());
+                group.resizeChild(this);
+            }
+        }
     }
 
     public Color getColor() {
@@ -87,7 +123,12 @@ public class Line implements GraphicalObject {
     }
 
     public void setColor(Color color) {
-        this.color = color;
+        if (this.color != color) {
+            this.color = color;
+            if (group != null) {
+                group.damage(getBoundingBox());
+            }
+        }
     }
 
     public int getLineThickness() {
@@ -95,7 +136,16 @@ public class Line implements GraphicalObject {
     }
 
     public void setLineThickness(int lineThickness) {
-        this.lineThickness = lineThickness;
+        if (this.lineThickness != lineThickness) {
+            if (group != null) {
+                group.damage(getBoundingBox());
+            }
+            this.lineThickness = lineThickness;
+            if (group != null) {
+                group.damage(getBoundingBox());
+                group.resizeChild(this);
+            }
+        }
     }
 
     @Override
@@ -151,12 +201,21 @@ public class Line implements GraphicalObject {
 
     @Override
     public void moveTo(int x, int y) {
-        Rectangle r = getBoundingBox();
+        BoundaryRectangle r = getBoundingBox();
         int offsetX = x - r.x, offsetY = y - r.y;
-        x1 += offsetX;
-        y1 += offsetY;
-        x2 += offsetX;
-        y2 += offsetY;
+        if (offsetX != 0 || offsetY != 0) {
+            if (group != null) {
+                group.damage(r);
+            }
+            x1 += offsetX;
+            y1 += offsetY;
+            x2 += offsetX;
+            y2 += offsetY;
+            if (group != null) {
+                group.damage(getBoundingBox());
+                group.resizeChild(this);
+            }
+        }
     }
 
     @Override
