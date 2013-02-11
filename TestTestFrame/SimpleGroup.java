@@ -40,13 +40,6 @@ public class SimpleGroup implements Group {
         this.width = width;
         this.height = height;
     }
-    
-    // test
-    public BoundaryRectangle getDamagedArea() {
-        BoundaryRectangle r = new BoundaryRectangle(damagedArea.x + x,
-                damagedArea.y + y, damagedArea.width, damagedArea.height);
-        return r;
-    }
 
     public int getX() {
         return x;
@@ -244,6 +237,7 @@ public class SimpleGroup implements Group {
 
     @Override
     public void removeChild(GraphicalObject child) {
+        if (child.getGroup() != this) return;
         child.setGroup(null);
         children.remove(child);
         /*

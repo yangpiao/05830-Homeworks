@@ -89,7 +89,6 @@ public class LayoutGroup implements Group {
                 group.damage(new BoundaryRectangle(this.x, y, width, height));
                 group.damage(new BoundaryRectangle(x, y, width, height));
             }
-            // bounds.x += x - this.x;
             this.x = x;
             // reset damaged area
             damagedArea = null;
@@ -109,7 +108,6 @@ public class LayoutGroup implements Group {
                 group.damage(new BoundaryRectangle(x, this.y, width, height));
                 group.damage(new BoundaryRectangle(x, y, width, height));
             }
-            // bounds.y += y - this.y;
             this.y = y;
             // reset damaged area
             damagedArea = null;
@@ -129,9 +127,6 @@ public class LayoutGroup implements Group {
                 group.damage(new BoundaryRectangle(x, y, this.width, height));
                 group.damage(new BoundaryRectangle(x, y, width, height));
             }
-            // if (x + width < bounds.x + bounds.width) {
-            //     bounds.width = width + x - bounds.x;
-            // }
             this.width = width;
             // reset damaged area
             damagedArea = null;
@@ -151,9 +146,6 @@ public class LayoutGroup implements Group {
                 group.damage(new BoundaryRectangle(x, y, width, this.height));
                 group.damage(new BoundaryRectangle(x, y, width, height));
             }
-            // if (y + height < bounds.y + bounds.height) {
-            //     bounds.height = height + y - bounds.y;
-            // }
             this.height = height;
             // reset damaged area
             damagedArea = null;
@@ -310,6 +302,7 @@ public class LayoutGroup implements Group {
 
     @Override
     public void removeChild(GraphicalObject child) {
+        if (child.getGroup() != this) return;
         child.setGroup(null);
         children.remove(child);
         changeLayout();
