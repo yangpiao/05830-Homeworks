@@ -1,8 +1,10 @@
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 
 
-public class FilledRect implements GraphicalObject {
+public class FilledEllipse implements GraphicalObject {
     private int x;
     private int y;
     private int width;
@@ -10,11 +12,11 @@ public class FilledRect implements GraphicalObject {
     private Color color;
     private Group group = null;
 
-    public FilledRect() {
+    public FilledEllipse() {
         this(0, 0, 0, 0, Color.BLACK);
     }
     
-    public FilledRect(int x, int y, int width, int height, Color color) {
+    public FilledEllipse(int x, int y, int width, int height, Color color) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -105,9 +107,9 @@ public class FilledRect implements GraphicalObject {
 
     @Override
     public void draw(Graphics2D graphics, Shape clipShape) {
-        graphics.setClip(clipShape);
+        graphics.setClip(new java.awt.Rectangle(0, 0, 200, 200));
         graphics.setColor(color);
-        graphics.fillRect(x, y, width, height);
+        graphics.fillOval(x, y, width, height);
     }
 
     @Override
