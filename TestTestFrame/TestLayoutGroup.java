@@ -21,7 +21,7 @@ public class TestLayoutGroup extends TestFrame {
 		}
 
 		println("creating black frame");
-		addChild(new OutlineRect(9, 9, 481, 181, Color.black, 1));
+		addChild(new OutlineRect(9, 9, 482, 182, Color.black, 1));
 
 		println("creating LayoutGroup inside black frame");
 		Group group = new LayoutGroup(10, 10, 480, 180, Group.HORIZONTAL, 0);

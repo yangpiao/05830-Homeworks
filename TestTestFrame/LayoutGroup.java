@@ -21,6 +21,11 @@ public class LayoutGroup implements Group {
     private BoundaryRectangle damagedArea = null;
     private boolean layoutChanged = false;
     
+    public static final int FILL = 3;
+    public static final int GRID = 4;
+    private int rows = 0;
+    private int cols = 0;
+    
     private void changeDamagedArea(BoundaryRectangle r) {
         if (damagedArea == null) {
             damagedArea = new BoundaryRectangle(r);
@@ -36,14 +41,15 @@ public class LayoutGroup implements Group {
     }
     
     private void changeLayout() {
-        // NOTE: do not wrap when children overflow
         ListIterator<GraphicalObject> it = children.listIterator();
         if (!it.hasNext()) return;
         GraphicalObject next = it.next();
-        int x = 0, y = 0;
-        if (layout == HORIZONTAL) {
-            next.moveTo(x, y);
-            BoundaryRectangle r = next.getBoundingBox();
+        int x = 0, y = 0, rowHeight;
+        next.moveTo(x, y);
+        BoundaryRectangle r = next.getBoundingBox();
+        rowHeight = r.height;
+        switch (layout) {
+        case HORIZONTAL:
             x += r.width + offset;
             while (it.hasNext()) {
                 next = it.next();
@@ -51,9 +57,8 @@ public class LayoutGroup implements Group {
                 r = next.getBoundingBox();
                 x += r.width + offset;
             }
-        } else if (layout == VERTICAL) {
-            next.moveTo(x, y);
-            BoundaryRectangle r = next.getBoundingBox();
+            break;
+        case VERTICAL:
             x += r.width + offset;
             while (it.hasNext()) {
                 next = it.next();
@@ -61,7 +66,48 @@ public class LayoutGroup implements Group {
                 r = next.getBoundingBox();
                 x += r.width + offset;
             }
+            break;
+        case FILL:
+            x += r.width + offset;
+            while (it.hasNext()) {
+                next = it.next();
+                r = next.getBoundingBox();
+                if (x + r.width >= width) { // overflow
+                    x = 0;
+                    y += rowHeight + offset;
+                    rowHeight = 0;
+                }
+                next.moveTo(x, y);
+                x += r.width + offset;
+                if (r.height > rowHeight) {
+                    rowHeight = r.height;
+                }
+            }
+            break;
+        case GRID:
+            int w = (width - (cols - 1) * offset) / cols;
+            int h = (height - (rows - 1) * offset) / rows;
+            int count = 1;
+            x += w + offset;
+            while (it.hasNext()) {
+                next = it.next();
+                if (count < rows * cols) {
+                    if (count % cols == 0) { // end of a row
+                        x = 0;
+                        y += h + offset;
+                    }
+                    next.moveTo(x, y);
+                    x += w + offset;
+                } else {
+                    // if the number of children exceeds rows * cols,
+                    // hide the rest of children
+                    next.moveTo(-100000, -1000000);
+                }
+                count++;
+            }
+            break;
         }
+
         layoutChanged = false;
     }
     
@@ -77,6 +123,16 @@ public class LayoutGroup implements Group {
         this.height = height;
         this.layout = layout;
         this.offset = offset;
+    }
+    
+    public LayoutGroup(int x, int y, int width, int height, 
+            int layout, int offset, int rows, int cols) {
+        this(x, y, width, height, HORIZONTAL, offset);
+        if (layout == GRID) {
+            this.layout = GRID;
+            this.rows = rows;
+            this.cols = cols;
+        }
     }
 
     public int getX() {
@@ -184,7 +240,37 @@ public class LayoutGroup implements Group {
             }
         }
     }
+    
+    public int getRows() {
+        return rows;
+    }
+    
+    public void setRows(int rows) {
+        if (this.rows != rows) {
+            this.rows = rows <= 0 ? 1 : rows;
+            // changeLayout();
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, width, height));
+                group.resizeChild(this);
+            }
+        }
+    }
+    
+    public int getCols() {
+        return cols;
+    }
 
+    public void setCols(int cols) {
+        if (this.cols != cols) {
+            this.cols = cols <= 0 ? 1 : cols;
+            // changeLayout();
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, width, height));
+                group.resizeChild(this);
+            }
+        }
+    }
+    
     @Override
     public void draw(Graphics2D graphics, Shape clipShape) {
         if (layoutChanged) changeLayout();
