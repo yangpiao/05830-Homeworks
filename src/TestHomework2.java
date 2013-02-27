@@ -167,17 +167,16 @@ public class TestHomework2 extends TestFrame {
 					     Group.VERTICAL, 2);
 	layoutgroup.addChild(lb1);
 	layoutgroup.addChild(lb2);
-	//layoutgroup.addChild(lb3);
+	layoutgroup.addChild(lb3); //?
 	layoutgroup.addChild(lb4);
 	topgroup.addChild(layoutgroup);
 	redraw (windowgroup);
 
-/*	CRASHES
     println("19. removing long line from layout group");
 	pause();
 	layoutgroup.removeChild(lb3);
 	redraw (windowgroup);
-*/
+
 	println("20. moving simple group to right and down");
 	pause();
 	sgroup.moveTo(30,30);

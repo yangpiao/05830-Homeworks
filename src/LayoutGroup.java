@@ -59,12 +59,14 @@ public class LayoutGroup implements Group {
             }
             break;
         case VERTICAL:
-            x += r.width + offset;
+            // x += r.width + offset;
+            y += r.height + offset;
             while (it.hasNext()) {
                 next = it.next();
                 next.moveTo(x, y);
                 r = next.getBoundingBox();
-                x += r.width + offset;
+                // x += r.width + offset;
+                y += r.height + offset;
             }
             break;
         case FILL:
@@ -219,6 +221,7 @@ public class LayoutGroup implements Group {
         if (this.layout != layout) {
             this.layout = layout;
             // changeLayout();
+            layoutChanged = true;
             if (group != null) {
                 group.damage(new BoundaryRectangle(x, y, width, height));
                 group.resizeChild(this);
@@ -234,6 +237,8 @@ public class LayoutGroup implements Group {
         if (this.offset != offset) {
             this.offset = offset;
             // changeLayout();
+            layoutChanged = true;
+            damagedArea = new BoundaryRectangle(0, 0, width, height);
             if (group != null) {
                 group.damage(new BoundaryRectangle(x, y, width, height));
                 group.resizeChild(this);
@@ -249,6 +254,8 @@ public class LayoutGroup implements Group {
         if (this.rows != rows) {
             this.rows = rows <= 0 ? 1 : rows;
             // changeLayout();
+            layoutChanged = true;
+            damagedArea = new BoundaryRectangle(0, 0, width, height);
             if (group != null) {
                 group.damage(new BoundaryRectangle(x, y, width, height));
                 group.resizeChild(this);
@@ -264,6 +271,8 @@ public class LayoutGroup implements Group {
         if (this.cols != cols) {
             this.cols = cols <= 0 ? 1 : cols;
             // changeLayout();
+            layoutChanged = true;
+            damagedArea = new BoundaryRectangle(0, 0, width, height);
             if (group != null) {
                 group.damage(new BoundaryRectangle(x, y, width, height));
                 group.resizeChild(this);
@@ -389,12 +398,14 @@ public class LayoutGroup implements Group {
     @Override
     public void removeChild(GraphicalObject child) {
         if (child.getGroup() != this) return;
+//        if (group != null) {
+//            group.damage(new BoundaryRectangle(x, y, width, height));
+//        }
         child.setGroup(null);
         children.remove(child);
         changeLayout();
         // update damaged area
-        damagedArea.setLocation(0, 0);
-        damagedArea.setSize(width, height);
+        damagedArea = null;
         if (group != null) {
             group.damage(new BoundaryRectangle(x, y, width, height));
             group.resizeChild(this);
