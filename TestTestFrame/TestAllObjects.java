@@ -9,7 +9,7 @@ public class TestAllObjects extends TestFrame {
 		new TestAllObjects();
 	}
 
-	public TestAllObjects() {
+	public TestAllObjects() { 
 		super("TestAllObjects", 300, 400);
 
 		println("OutlineRect");
