@@ -33,6 +33,7 @@ public class DrawingEditor extends InteractiveWindowGroup {
         SimpleGroup g = new SimpleGroup(10, 10, 690, 490);
         createTools(g);
         createCanvas(g);
+        createOptions(g);
         addChild(g);
         println("Drawing Editor");
         println("Usage: choose a tool from the palette, and click & drag to " +
@@ -130,7 +131,104 @@ public class DrawingEditor extends InteractiveWindowGroup {
         addBehavior(multiSelect);
     }
     
-    private ToolType currentTool;
+    
+    private void createOptions(Group g) {
+        LayoutGroup opts = new LayoutGroup(610, 410, 70, 70,
+                LayoutGroup.VERTICAL, 5);
+        Text optC = new Text("[Color]", 0, 0, font, Color.blue);
+        Text optL = new Text("[Line]", 0, 0, font, Color.blue);
+        opts.addChild(optC);
+        opts.addChild(optL);
+        g.addChild(opts);
+        BehaviorEvent start = new BehaviorEvent(BehaviorEvent.MOUSE_DOWN_ID, 
+                BehaviorEvent.NO_MODIFIER, BehaviorEvent.LEFT_MOUSE_KEY, 0, 0);
+        BehaviorEvent stop = new BehaviorEvent(BehaviorEvent.MOUSE_UP_ID, 
+                BehaviorEvent.NO_MODIFIER, BehaviorEvent.LEFT_MOUSE_KEY, 0, 0);
+        ChoiceBehavior select = new ChoiceBehavior();
+        select.setStartEvent(start);
+        select.setStopEvent(stop);
+        select.setGroup(opts);
+        select.addListener(new ChoiceBehavior.SelectListener() {
+            public void onSelect(GraphicalObject o) {
+                optionHelper(((Text) o).getText());
+            }
+        });
+        addBehavior(select);
+    }
+    
+    private void optionHelper(String opt) {
+        if (opt.equals("[Color]")) {
+            Color c = JColorChooser.showDialog(this,
+                    "Choose Color", Color.black);
+            if (c != null) {
+                color = c;
+                optionColor(c);
+            }
+        } else { // opt.equals(" Line ")
+            String s = JOptionPane.showInputDialog("Enter line thickness:",
+                    thickness);
+            if (s != null && !s.isEmpty()) {
+                try {
+                    int n = Integer.parseInt(s);
+                    thickness = n;
+                    optionThickness(n);
+                } catch(Exception e) {}
+            }
+        }
+    }
+    
+    private void optionColor(Color c) {
+        if (canvasBehavior != null) {
+            switch (currentTool) {
+            case LINE:
+                ((NewLineBehavior) canvasBehavior).setColor(c);
+                break;
+            case RECT:
+                ((NewRectBehavior) canvasBehavior).setColor(c);
+                break;
+            case FRECT:
+                ((NewFilledRectBehavior) canvasBehavior).setColor(c);
+                break;
+            case ELLPS:
+                ((NewEllipseBehavior) canvasBehavior).setColor(c);
+                break;
+            case FELLPS:
+                ((NewFilledEllipseBehavior) canvasBehavior).setColor(c);
+                break;
+            case TEXT:
+                ((NewTextBehavior) canvasBehavior).setColor(c);
+                break;
+            case MOVE:
+            case IMAGE:
+                break;
+            }
+        }
+    }
+    
+    private void optionThickness(int n) {
+        if (canvasBehavior != null) {
+            switch (currentTool) {
+            case LINE:
+                ((NewLineBehavior) canvasBehavior).setLineThickness(n);
+                break;
+            case RECT:
+                ((NewRectBehavior) canvasBehavior).setLineThickness(n);
+                break;
+            case ELLPS:
+                ((NewEllipseBehavior) canvasBehavior).setLineThickness(n);
+                break;
+            case MOVE:
+            case FRECT:
+            case FELLPS:
+            case TEXT:
+            case IMAGE:
+                break;
+            }
+        }
+    }
+    
+    
+    private ToolType currentTool = ToolType.MOVE;
     private void setCurrentTool(ToolType t) {
         if (t == null) t = ToolType.MOVE;
         if (currentTool != t) {
@@ -156,12 +254,12 @@ public class DrawingEditor extends InteractiveWindowGroup {
                 canvasBehavior = new NewFilledEllipseBehavior(color);
                 break;
             case TEXT:
-                String s = 
-                    (String) JOptionPane.showInputDialog("Enter a string:");
+                String s = JOptionPane.showInputDialog("Enter a string:");
                 if (s != null && !s.isEmpty()) {
                     canvasBehavior = new NewTextBehavior(s, color, font);
                 } else {
                     canvasBehavior = new MoveBehavior();
+                    currentTool = ToolType.MOVE;
                 }
                 break;
             case IMAGE:
@@ -172,9 +270,11 @@ public class DrawingEditor extends InteractiveWindowGroup {
                         canvasBehavior = new NewIconBehavior(image);
                     } catch (Exception e) {
                         canvasBehavior = new MoveBehavior();
+                        currentTool = ToolType.MOVE;
                     }
                 } else {
                     canvasBehavior = new MoveBehavior();
+                    currentTool = ToolType.MOVE;
                 }
                 break;
             }
@@ -185,7 +285,7 @@ public class DrawingEditor extends InteractiveWindowGroup {
             
         } else if (t == ToolType.TEXT &&
                 canvasBehavior instanceof NewTextBehavior) {
-            String s = (String) JOptionPane.showInputDialog("Enter a string:");
+            String s = JOptionPane.showInputDialog("Enter a string:");
             if (s != null && !s.isEmpty()) {
                 ((NewTextBehavior) canvasBehavior).setText(s);
             }
