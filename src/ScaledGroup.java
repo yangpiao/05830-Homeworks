@@ -1,3 +1,5 @@
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -8,7 +10,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 
-public class ScaledGroup implements Group {
+public class ScaledGroup implements Group, Selectable {
     private int x;
     private int y;
     private int width;
@@ -191,6 +193,31 @@ public class ScaledGroup implements Group {
             child.draw(graphics, drawArea);
         }
         
+        if (selected || interimSelected) {
+            Rectangle r = new Rectangle(x, y, width - 1, height - 1);
+            Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
+            Rectangle r2 = new Rectangle(r.x, r.y + r.height - 3, 4, 4);
+            Rectangle r3 = new Rectangle(r.x + r.width - 3, r.y, 4, 4);
+            Rectangle r4 = new Rectangle(r.x + r.width - 3, 
+                    r.y + r.height - 3, 4, 4);
+            graphics.setStroke(new BasicStroke(1));
+            if (selected && !interimSelected) {
+                graphics.setColor(Color.darkGray);
+                graphics.draw(r);
+                graphics.fill(r1);
+                graphics.fill(r2);
+                graphics.fill(r3);
+                graphics.fill(r4);
+            } else if (interimSelected) {
+                graphics.setColor(Color.lightGray);
+                graphics.draw(r);
+                graphics.fill(r1);
+                graphics.fill(r2);
+                graphics.fill(r3);
+                graphics.fill(r4);
+            }
+        }
+        
         // reset transforms
         if (scaleX > 0.0000000001 && scaleY > 0.0000000001) {
             graphics.scale(1.0 / scaleX, 1.0 / scaleY);
@@ -234,6 +261,22 @@ public class ScaledGroup implements Group {
             }
         }
     }
+    
+    @Override
+    public void resize(int width, int height) {
+        if (this.width != width || this.height != height) {
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, this.width, this.height));
+            }
+            this.width = width;
+            this.height = height;
+            damagedArea = null;
+            if (group != null) {
+                group.resizeChild(this);
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
+        }
+    }
 
     @Override
     public Group getGroup() {
@@ -247,7 +290,8 @@ public class ScaledGroup implements Group {
 
     @Override
     public boolean contains(int x, int y) {
-        return getBoundingBox().contains(x, y);
+        // return getBoundingBox().contains(x, y);
+        return (new Rectangle(this.x, this.y, width, height)).contains(x, y);
     }
 
     @Override
@@ -382,7 +426,7 @@ public class ScaledGroup implements Group {
     @Override
     public List<GraphicalObject> getChildren() {
         List<GraphicalObject> copy = new ArrayList<GraphicalObject>();
-        int end = children.size() - 1;
+        int end = children.size();
         ListIterator<GraphicalObject> it = children.listIterator(end);
         while (it.hasPrevious()) {
             copy.add(it.previous());
@@ -403,6 +447,39 @@ public class ScaledGroup implements Group {
     @Override
     public Point childToParent(Point pt) {
         return new Point(calcX(pt.x) + x, calcY(pt.y) + y);
+    }
+    
+    private boolean interimSelected = false;
+    private boolean selected = false;
+
+    @Override
+    public void setInterimSelected(boolean interimSelected) {
+        if (this.interimSelected != interimSelected) {
+            this.interimSelected = interimSelected;
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
+        }
+    }
+
+    @Override
+    public boolean isInterimSelected() {
+        return interimSelected;
+    }
+
+    @Override
+    public void setSelected(boolean selected) {
+        if (this.selected != selected) {
+            this.selected = selected;
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
+        }
+    }
+
+    @Override
+    public boolean isSelected() {
+        return selected;
     }
 
 }

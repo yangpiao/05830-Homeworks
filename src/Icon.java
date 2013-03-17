@@ -2,7 +2,7 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 
 
-public class Icon implements GraphicalObject {
+public class Icon implements GraphicalObject, Selectable {
     private Image image;
     private int x;
     private int y;
@@ -75,6 +75,32 @@ public class Icon implements GraphicalObject {
     public void draw(Graphics2D graphics, Shape clipShape) {
         graphics.setClip(clipShape);
         graphics.drawImage(image, x, y, null);
+        
+        if (selected || interimSelected) {
+            Rectangle r = new Rectangle(x, y, 
+                    image.getWidth(null) - 1, image.getHeight(null) - 1);
+            Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
+            Rectangle r2 = new Rectangle(r.x, r.y + r.height - 3, 4, 4);
+            Rectangle r3 = new Rectangle(r.x + r.width - 3, r.y, 4, 4);
+            Rectangle r4 = new Rectangle(r.x + r.width - 3, 
+                    r.y + r.height - 3, 4, 4);
+            graphics.setStroke(new BasicStroke(1));
+            if (selected && !interimSelected) {
+                graphics.setColor(Color.darkGray);
+                graphics.draw(r);
+                graphics.fill(r1);
+                graphics.fill(r2);
+                graphics.fill(r3);
+                graphics.fill(r4);
+            } else if (interimSelected) {
+                graphics.setColor(Color.lightGray);
+                graphics.draw(r);
+                graphics.fill(r1);
+                graphics.fill(r2);
+                graphics.fill(r3);
+                graphics.fill(r4);
+            }
+        }
     }
 
     @Override
@@ -97,6 +123,21 @@ public class Icon implements GraphicalObject {
                 group.resizeChild(this);
             }
         }
+    }
+    
+    @Override
+    public void resize(int width, int height) {
+//        if (this.width != width || this.height != height) {
+//            if (group != null) {
+//                group.damage(getBoundingBox());
+//            }
+//            this.width = width;
+//            this.height = height;
+//            if (group != null) {
+//                group.resizeChild(this);
+//                group.damage(getBoundingBox());
+//            }
+//        }
     }
 
     @Override
@@ -126,4 +167,36 @@ public class Icon implements GraphicalObject {
         return null;
     }
 
+    private boolean interimSelected = false;
+    private boolean selected = false;
+    
+    @Override
+    public void setInterimSelected(boolean interimSelected) {
+        if (this.interimSelected != interimSelected) {
+            this.interimSelected = interimSelected;
+            if (group != null) {
+                group.damage(getBoundingBox());
+            }
+        }
+    }
+
+    @Override
+    public boolean isInterimSelected() {
+        return interimSelected;
+    }
+
+    @Override
+    public void setSelected(boolean selected) {
+        if (this.selected != selected) {
+            this.selected = selected;
+            if (group != null) {
+                group.damage(getBoundingBox());
+            }
+        }
+    }
+
+    @Override
+    public boolean isSelected() {
+        return selected;
+    }
 }

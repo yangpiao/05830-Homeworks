@@ -2,7 +2,7 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 
 
-public class OutlineRect implements GraphicalObject {
+public class OutlineRect implements GraphicalObject, Selectable {
     private int x;
     private int y;
     private int width;
@@ -153,6 +153,29 @@ public class OutlineRect implements GraphicalObject {
         graphics.setStroke(new BasicStroke(lineThickness));
         graphics.setColor(color);
         graphics.draw(rect);
+        // Rectangle r = rect;
+        Rectangle r = new Rectangle(x, y, width - 1, height - 1);
+        Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
+        Rectangle r2 = new Rectangle(r.x, r.y + r.height - 3, 4, 4);
+        Rectangle r3 = new Rectangle(r.x + r.width - 3, r.y, 4, 4);
+        Rectangle r4 = new Rectangle(r.x + r.width - 3, 
+                r.y + r.height - 3, 4, 4);
+        graphics.setStroke(new BasicStroke(1));
+        if (selected && !interimSelected) {
+            graphics.setColor(Color.darkGray);
+            graphics.draw(r);
+            graphics.fill(r1);
+            graphics.fill(r2);
+            graphics.fill(r3);
+            graphics.fill(r4);
+        } else if (interimSelected) {
+            graphics.setColor(Color.lightGray);
+            graphics.draw(r);
+            graphics.fill(r1);
+            graphics.fill(r2);
+            graphics.fill(r3);
+            graphics.fill(r4);
+        }
     }
 
     @Override
@@ -173,6 +196,22 @@ public class OutlineRect implements GraphicalObject {
             createRect();
             if (group != null) {
                 group.resizeChild(this);
+            }
+        }
+    }
+    
+    @Override
+    public void resize(int width, int height) {
+        if (this.width != width || this.height != height) {
+            if (group != null) {
+                group.damage(getBoundingBox());
+            }
+            this.width = width;
+            this.height = height;
+            createRect();
+            if (group != null) {
+                group.resizeChild(this);
+                group.damage(getBoundingBox());
             }
         }
     }
@@ -206,6 +245,39 @@ public class OutlineRect implements GraphicalObject {
     public AffineTransform getAffineTransform() {
         // TODO Auto-generated method stub
         return null;
+    }
+    
+    private boolean interimSelected = false;
+    private boolean selected = false;
+    
+    @Override
+    public void setInterimSelected(boolean interimSelected) {
+        if (this.interimSelected != interimSelected) {
+            this.interimSelected = interimSelected;
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
+        }
+    }
+
+    @Override
+    public boolean isInterimSelected() {
+        return interimSelected;
+    }
+
+    @Override
+    public void setSelected(boolean selected) {
+        if (this.selected != selected) {
+            this.selected = selected;
+            if (group != null) {
+                group.damage(new BoundaryRectangle(x, y, width, height));
+            }
+        }
+    }
+
+    @Override
+    public boolean isSelected() {
+        return selected;
     }
 
 }

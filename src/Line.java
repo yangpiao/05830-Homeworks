@@ -2,7 +2,7 @@ import java.awt.*;
 import java.awt.geom.*;
 
 
-public class Line implements GraphicalObject {
+public class Line implements GraphicalObject, Selectable {
     private int x1;
     private int y1;
     private int x2;
@@ -147,6 +147,32 @@ public class Line implements GraphicalObject {
         int xDiff = ul.x - localBox.x;
         int yDiff = ul.y - localBox.y;
         graphics.drawLine(x1 + xDiff, y1 + yDiff, x2 + xDiff, y2 + yDiff);
+        
+        if (selected || interimSelected) {
+            Rectangle r = new Rectangle(localBox.x, localBox.y, 
+                    localBox.width - 1, localBox.height - 1);
+            Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
+            Rectangle r2 = new Rectangle(r.x, r.y + r.height - 3, 4, 4);
+            Rectangle r3 = new Rectangle(r.x + r.width - 3, r.y, 4, 4);
+            Rectangle r4 = new Rectangle(r.x + r.width - 3, 
+                    r.y + r.height - 3, 4, 4);
+            graphics.setStroke(new BasicStroke(1));
+            if (selected && !interimSelected) {
+                graphics.setColor(Color.darkGray);
+                graphics.draw(r);
+                graphics.fill(r1);
+                graphics.fill(r2);
+                graphics.fill(r3);
+                graphics.fill(r4);
+            } else if (interimSelected) {
+                graphics.setColor(Color.lightGray);
+                graphics.draw(r);
+                graphics.fill(r1);
+                graphics.fill(r2);
+                graphics.fill(r3);
+                graphics.fill(r4);
+            }
+        }
     }
 
     @Override
@@ -185,6 +211,23 @@ public class Line implements GraphicalObject {
             }
         }
     }
+    
+    @Override
+    public void resize(int width, int height) {
+        BoundaryRectangle r = getBoundingBox();
+        int w = r.width, h = r.height;
+        if (w != width || h != height) {
+            if (group != null) {
+                group.damage(r);
+            }
+            x2 = x2 + width - w;
+            y2 = y2 + height - h;
+            if (group != null) {
+                group.resizeChild(this);
+                group.damage(getBoundingBox());
+            }
+        }
+    }
 
     @Override
     public Group getGroup() {
@@ -214,4 +257,36 @@ public class Line implements GraphicalObject {
         return null;
     }
 
+    private boolean interimSelected = false;
+    private boolean selected = false;
+    
+    @Override
+    public void setInterimSelected(boolean interimSelected) {
+        if (this.interimSelected != interimSelected) {
+            this.interimSelected = interimSelected;
+            if (group != null) {
+                group.damage(getBoundingBox());
+            }
+        }
+    }
+
+    @Override
+    public boolean isInterimSelected() {
+        return interimSelected;
+    }
+
+    @Override
+    public void setSelected(boolean selected) {
+        if (this.selected != selected) {
+            this.selected = selected;
+            if (group != null) {
+                group.damage(getBoundingBox());
+            }
+        }
+    }
+
+    @Override
+    public boolean isSelected() {
+        return selected;
+    }
 }

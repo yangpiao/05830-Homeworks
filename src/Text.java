@@ -4,7 +4,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.font.*;
 
 
-public class Text implements GraphicalObject {
+public class Text implements GraphicalObject, Selectable {
     private String text;
     private int x;
     private int y;
@@ -150,6 +150,34 @@ public class Text implements GraphicalObject {
         graphics.setColor(color);
         graphics.setFont(font);
         graphics.drawString(text, x, y);
+        
+        if (selected || interimSelected) {
+            Rectangle r = new BoundaryRectangle(x + (int)bounds.getX(), 
+                    y + (int)bounds.getY(), 
+                    (int)bounds.getWidth() - 1, 
+                    (int)bounds.getHeight() - 1);
+            Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
+            Rectangle r2 = new Rectangle(r.x, r.y + r.height - 3, 4, 4);
+            Rectangle r3 = new Rectangle(r.x + r.width - 3, r.y, 4, 4);
+            Rectangle r4 = new Rectangle(r.x + r.width - 3, 
+                    r.y + r.height - 3, 4, 4);
+            graphics.setStroke(new BasicStroke(1));
+            if (selected && !interimSelected) {
+                graphics.setColor(Color.darkGray);
+                graphics.draw(r);
+                graphics.fill(r1);
+                graphics.fill(r2);
+                graphics.fill(r3);
+                graphics.fill(r4);
+            } else if (interimSelected) {
+                graphics.setColor(Color.lightGray);
+                graphics.draw(r);
+                graphics.fill(r1);
+                graphics.fill(r2);
+                graphics.fill(r3);
+                graphics.fill(r4);
+            }
+        }
     }
 
     @Override
@@ -178,7 +206,21 @@ public class Text implements GraphicalObject {
                 group.resizeChild(this);
             }
         }
-
+    }
+    
+    @Override
+    public void resize(int width, int height) {
+//        if (this.width != width || this.height != height) {
+//            if (group != null) {
+//                group.damage(getBoundingBox());
+//            }
+//            this.width = width;
+//            this.height = height;
+//            if (group != null) {
+//                group.resizeChild(this);
+//                group.damage(getBoundingBox());
+//            }
+//        }
     }
 
     @Override
@@ -208,4 +250,36 @@ public class Text implements GraphicalObject {
         return null;
     }
 
+    private boolean interimSelected = false;
+    private boolean selected = false;
+    
+    @Override
+    public void setInterimSelected(boolean interimSelected) {
+        if (this.interimSelected != interimSelected) {
+            this.interimSelected = interimSelected;
+            if (group != null) {
+                group.damage(getBoundingBox());
+            }
+        }
+    }
+
+    @Override
+    public boolean isInterimSelected() {
+        return interimSelected;
+    }
+
+    @Override
+    public void setSelected(boolean selected) {
+        if (this.selected != selected) {
+            this.selected = selected;
+            if (group != null) {
+                group.damage(getBoundingBox());
+            }
+        }
+    }
+
+    @Override
+    public boolean isSelected() {
+        return selected;
+    }
 }
