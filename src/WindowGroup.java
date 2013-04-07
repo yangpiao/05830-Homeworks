@@ -100,12 +100,15 @@ public class WindowGroup extends JFrame implements Group {
     	    Graphics2D g = (Graphics2D) buffer.getGraphics ();
             g.setColor (canvas.getBackground ());
             g.fill (savedClipRect);
+            Rectangle area = canvas.getBounds();
     	    for (ListIterator<GraphicalObject> iter = children.listIterator (); iter.hasNext (); ) {
     	    	GraphicalObject gobj = iter.next ();
     	    	BoundaryRectangle r = gobj.getBoundingBox ();
     	    	// gobj.draw(g, r);
-    	    	if (r.intersects (savedClipRect))
-    	    		gobj.draw (g, savedClipRect);
+    	    	// if (r.intersects (savedClipRect))
+    	    	// 	gobj.draw (g, savedClipRect);
+    	    	if (r.intersects (area))
+                    gobj.draw (g, area);
     	    }
     	    savedClipRect = null;
     	} else {

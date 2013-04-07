@@ -123,15 +123,17 @@ public class SimpleGroup implements Group, Selectable {
     public void draw(Graphics2D graphics, Shape clipShape) {
         // if damagedArea is not null, only draw inside the area
         Shape drawArea;
-        if (damagedArea != null) {
-            // transform the coordinates of the damaged area
-            drawArea = new BoundaryRectangle(damagedArea.x + x, 
-                    damagedArea.y + y, damagedArea.width, damagedArea.height);
-        } else {
-            drawArea = clipShape;
-        }
-        Rectangle groupArea = new Rectangle(x, y, width, height);
-        drawArea = groupArea.intersection((Rectangle) drawArea);
+//        if (damagedArea != null) {
+//            // transform the coordinates of the damaged area
+//            drawArea = new BoundaryRectangle(damagedArea.x + x, 
+//                    damagedArea.y + y, damagedArea.width, damagedArea.height);
+//        } else {
+//            drawArea = clipShape;
+//        }
+//        Rectangle groupArea = new Rectangle(x, y, width, height);
+//        drawArea = groupArea.intersection((Rectangle) drawArea);
+        
+        drawArea = clipShape;
         graphics.setClip(drawArea);
         
         // draw all the children

@@ -3,16 +3,16 @@ import java.awt.*;
 
 
 public class MoveBehavior implements Behavior {
-    private Group group;
-    private int state = IDLE;
-    private BehaviorEvent startEvent;
-    private BehaviorEvent stopEvent;
+    protected Group group;
+    protected int state = IDLE;
+    protected BehaviorEvent startEvent;
+    protected BehaviorEvent stopEvent;
     
-    private GraphicalObject target = null;
-    private Rectangle initBounding = new Rectangle(0, 0, 0, 0);
-    private Point initCursor = new Point(0, 0);
+    protected GraphicalObject target = null;
+    protected Rectangle initBounding = new Rectangle(0, 0, 0, 0);
+    protected Point initCursor = new Point(0, 0);
     
-    private int gridSize;
+    protected int gridSize;
     
     public MoveBehavior() {
         gridSize = 0;
