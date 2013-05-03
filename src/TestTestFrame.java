@@ -45,8 +45,8 @@ public class TestTestFrame extends TestFrame {
 		public void setAffineTransform(AffineTransform af) {};
 		public AffineTransform getAffineTransform() {return null;};
 		public pretendrect(){}
-        @Override
         public void resize(int width, int height) {}
+        public void setSelectionFeedback(boolean feedback) {}
 	}
 	private void drawsomething() {
 		addClipRect(new BoundaryRectangle(1,1,50,50));

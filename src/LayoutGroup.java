@@ -1,9 +1,4 @@
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Shape;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.List;
@@ -134,9 +129,9 @@ public class LayoutGroup implements Group, Selectable {
     
     public LayoutGroup(int x, int y, int width, int height, 
             int layout, int offset, int rows, int cols) {
-        this(x, y, width, height, HORIZONTAL, offset);
+        this(x, y, width, height, layout, offset);
         if (layout == GRID) {
-            this.layout = GRID;
+            // this.layout = GRID;
             this.rows = rows;
             this.cols = cols;
         }
@@ -296,7 +291,8 @@ public class LayoutGroup implements Group, Selectable {
             drawArea = new BoundaryRectangle(damagedArea.x + x, 
                     damagedArea.y + y, damagedArea.width, damagedArea.height);
         } else {
-            drawArea = clipShape;
+            // drawArea = clipShape;
+            drawArea = getBoundingBox();
         }
         graphics.setClip(drawArea);
         
@@ -314,7 +310,7 @@ public class LayoutGroup implements Group, Selectable {
         // reset the damaged area after drawing
         damagedArea = null;
         
-        if (selected || interimSelected) {
+        if ((selected || interimSelected) && selectionFeedback) {
             Rectangle r = new Rectangle(x, y, width - 1, height - 1);
             Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
             Rectangle r2 = new Rectangle(r.x, r.y + r.height - 3, 4, 4);
@@ -590,4 +586,12 @@ public class LayoutGroup implements Group, Selectable {
         return selected;
     }
 
+    private boolean selectionFeedback = true;
+    @Override
+    public void setSelectionFeedback(boolean feedback) {
+        selectionFeedback = feedback;
+        if (group != null) {
+            group.damage(getBoundingBox());
+        }
+    }
 }

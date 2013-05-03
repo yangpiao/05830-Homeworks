@@ -11,4 +11,6 @@ public interface GraphicalObject {
 	public boolean contains(int x, int y);
 	public void setAffineTransform(AffineTransform af);
 	public AffineTransform getAffineTransform();
+	
+	public void setSelectionFeedback(boolean feedback);
 }

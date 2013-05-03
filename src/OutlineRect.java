@@ -3,19 +3,19 @@ import java.awt.geom.AffineTransform;
 
 
 public class OutlineRect implements GraphicalObject, Selectable {
-    private int x;
-    private int y;
-    private int width;
-    private int height;
-    private Color color;
-    private int lineThickness;
-    private Rectangle rect = null;
-    private Group group = null;
+    protected int x;
+    protected int y;
+    protected int width;
+    protected int height;
+    protected Color color;
+    protected int lineThickness;
+    protected Rectangle rect = null;
+    protected Group group = null;
     
     /**
      * Create a rectangle using the metrics given
      */
-    private void createRect() {
+    protected void createRect() {
         int newX, newY, newW, newH, halfLine = lineThickness / 2;
         newX = x + halfLine;
         newY = y + halfLine;
@@ -153,28 +153,30 @@ public class OutlineRect implements GraphicalObject, Selectable {
         graphics.setStroke(new BasicStroke(lineThickness));
         graphics.setColor(color);
         graphics.draw(rect);
-        // Rectangle r = rect;
-        Rectangle r = new Rectangle(x, y, width - 1, height - 1);
-        Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
-        Rectangle r2 = new Rectangle(r.x, r.y + r.height - 3, 4, 4);
-        Rectangle r3 = new Rectangle(r.x + r.width - 3, r.y, 4, 4);
-        Rectangle r4 = new Rectangle(r.x + r.width - 3, 
-                r.y + r.height - 3, 4, 4);
-        graphics.setStroke(new BasicStroke(1));
-        if (selected && !interimSelected) {
-            graphics.setColor(Color.darkGray);
-            graphics.draw(r);
-            graphics.fill(r1);
-            graphics.fill(r2);
-            graphics.fill(r3);
-            graphics.fill(r4);
-        } else if (interimSelected) {
-            graphics.setColor(Color.lightGray);
-            graphics.draw(r);
-            graphics.fill(r1);
-            graphics.fill(r2);
-            graphics.fill(r3);
-            graphics.fill(r4);
+        if ((selected || interimSelected) && selectionFeedback) {
+            // Rectangle r = rect;
+            Rectangle r = new Rectangle(x, y, width - 1, height - 1);
+            Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
+            Rectangle r2 = new Rectangle(r.x, r.y + r.height - 3, 4, 4);
+            Rectangle r3 = new Rectangle(r.x + r.width - 3, r.y, 4, 4);
+            Rectangle r4 = new Rectangle(r.x + r.width - 3, 
+                    r.y + r.height - 3, 4, 4);
+            graphics.setStroke(new BasicStroke(1));
+            if (selected && !interimSelected) {
+                graphics.setColor(Color.darkGray);
+                graphics.draw(r);
+                graphics.fill(r1);
+                graphics.fill(r2);
+                graphics.fill(r3);
+                graphics.fill(r4);
+            } else if (interimSelected) {
+                graphics.setColor(Color.lightGray);
+                graphics.draw(r);
+                graphics.fill(r1);
+                graphics.fill(r2);
+                graphics.fill(r3);
+                graphics.fill(r4);
+            }
         }
     }
 
@@ -247,8 +249,8 @@ public class OutlineRect implements GraphicalObject, Selectable {
         return null;
     }
     
-    private boolean interimSelected = false;
-    private boolean selected = false;
+    protected boolean interimSelected = false;
+    protected boolean selected = false;
     
     @Override
     public void setInterimSelected(boolean interimSelected) {
@@ -280,4 +282,12 @@ public class OutlineRect implements GraphicalObject, Selectable {
         return selected;
     }
 
+    private boolean selectionFeedback = true;
+    @Override
+    public void setSelectionFeedback(boolean feedback) {
+        selectionFeedback = feedback;
+        if (group != null) {
+            group.damage(getBoundingBox());
+        }
+    }
 }

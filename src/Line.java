@@ -148,7 +148,7 @@ public class Line implements GraphicalObject, Selectable {
         int yDiff = ul.y - localBox.y;
         graphics.drawLine(x1 + xDiff, y1 + yDiff, x2 + xDiff, y2 + yDiff);
         
-        if (selected || interimSelected) {
+        if ((selected || interimSelected) && selectionFeedback) {
             Rectangle r = new Rectangle(localBox.x, localBox.y, 
                     localBox.width - 1, localBox.height - 1);
             Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
@@ -288,5 +288,14 @@ public class Line implements GraphicalObject, Selectable {
     @Override
     public boolean isSelected() {
         return selected;
+    }
+    
+    private boolean selectionFeedback = true;
+    @Override
+    public void setSelectionFeedback(boolean feedback) {
+        selectionFeedback = feedback;
+        if (group != null) {
+            group.damage(getBoundingBox());
+        }
     }
 }

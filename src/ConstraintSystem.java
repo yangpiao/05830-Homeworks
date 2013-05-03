@@ -31,16 +31,20 @@ public class ConstraintSystem implements Runnable {
                 synchronized (variables) {
                     for (ConstraintVariable v : variables) {
                         // System.out.println(v.getOldValue() + ", " + v.getValue());
-                        if (v.isSource() && !v.getValue().equals(v.getOldValue())) {
-                            // v.setInvalid();
-                            v.populate();
+                        if (v.isSource()) {
+                            Object value = v.getValue(), old = v.getOldValue();
+                            if ((value != null && !value.equals(old)) ||
+                                    (value == null && old != null)) {
+                                // v.setInvalid();
+                                v.populate();
+                            }
                         }
                     }
                 }
                 Thread.sleep(1);
             } catch (Exception e) {
                 System.out.println(e);
-                // return;
+                return;
             }
         }
     }

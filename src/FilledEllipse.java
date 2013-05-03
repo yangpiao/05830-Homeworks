@@ -112,7 +112,7 @@ public class FilledEllipse implements GraphicalObject, Selectable {
         graphics.setClip(clipShape);
         graphics.setColor(color);
         graphics.fillOval(x, y, width, height);
-        if (selected || interimSelected) {
+        if ((selected || interimSelected) && selectionFeedback) {
             Rectangle r = new Rectangle(x, y, width - 1, height - 1);
             Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
             Rectangle r2 = new Rectangle(r.x, r.y + r.height - 3, 4, 4);
@@ -237,5 +237,13 @@ public class FilledEllipse implements GraphicalObject, Selectable {
     public boolean isSelected() {
         return selected;
     }
-
+    
+    private boolean selectionFeedback = true;
+    @Override
+    public void setSelectionFeedback(boolean feedback) {
+        selectionFeedback = feedback;
+        if (group != null) {
+            group.damage(getBoundingBox());
+        }
+    }
 }

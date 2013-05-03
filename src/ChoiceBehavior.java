@@ -9,15 +9,15 @@ public class ChoiceBehavior implements Behavior {
     public static final int MULTIPLE = 2;
     
     private Group group;
-    private int state = IDLE;
     private BehaviorEvent startEvent;
     private BehaviorEvent stopEvent;
     private ArrayList<GraphicalObject> targets;
-    private Selectable hovered = null;
     private int type;
     private boolean firstOnly;
+    protected int state = IDLE;
+    protected Selectable hovered;
     
-    private void select(GraphicalObject obj) {
+    protected void select(GraphicalObject obj) {
         switch (type) {
         case SINGLE:
             for (GraphicalObject t : targets) {
@@ -32,6 +32,8 @@ public class ChoiceBehavior implements Behavior {
                 s.setSelected(true);
                 targets.add(obj);
                 execListeners(obj);
+            } else {
+                execListeners(null);
             }
             break;
         case TOGGLE:
@@ -48,11 +50,14 @@ public class ChoiceBehavior implements Behavior {
                 s.setInterimSelected(false);
                 if (s.isSelected()) {
                     s.setSelected(false);
+                    execListeners(null);
                 } else {
                     s.setSelected(true);
                     targets.add(obj);
                     execListeners(obj);
                 }
+            } else {
+                execListeners(null);
             }
             break;
         case MULTIPLE:
@@ -62,6 +67,7 @@ public class ChoiceBehavior implements Behavior {
                     s.setInterimSelected(false);
                     s.setSelected(false);
                     targets.remove(obj);
+                    execListeners(obj); // ?
                 } else {
                     s.setInterimSelected(false);
                     s.setSelected(true);
@@ -86,6 +92,14 @@ public class ChoiceBehavior implements Behavior {
         this.firstOnly = firstOnly;
     }
     
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
     public List<GraphicalObject> getSelection() {
         return null;
     }
@@ -127,21 +141,21 @@ public class ChoiceBehavior implements Behavior {
 
     @Override
     public void start(BehaviorEvent event) {
-       if (state == IDLE) {
-           int x = event.getX(), y = event.getY();
-           List<GraphicalObject> children = group.getChildren();
-           for (GraphicalObject o : children) {
-               Rectangle br = o.getBoundingBox();
-               if (br.contains(x, y) && o instanceof Selectable) {
-                   hovered = ((Selectable) o);
-                   hovered.setInterimSelected(true);
-                   state = RUNNING_INSIDE;
-                   // System.out.println("choice: start");
-                   return;
-               }
-           }
-           select(null);
-       }
+        if (state == IDLE) {
+            int x = event.getX(), y = event.getY();
+            List<GraphicalObject> children = group.getChildren();
+            for (GraphicalObject o : children) {
+                Rectangle br = o.getBoundingBox();
+                if (br.contains(x, y) && o instanceof Selectable) {
+                    hovered = ((Selectable) o);
+                    hovered.setInterimSelected(true);
+                    state = RUNNING_INSIDE;
+                    // System.out.println("choice: start");
+                    return;
+                }
+            }
+            select(null);
+        }
     }
 
     @Override

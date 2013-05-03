@@ -133,7 +133,8 @@ public class SimpleGroup implements Group, Selectable {
 //        Rectangle groupArea = new Rectangle(x, y, width, height);
 //        drawArea = groupArea.intersection((Rectangle) drawArea);
         
-        drawArea = clipShape;
+        // drawArea = clipShape;
+        drawArea = getBoundingBox();
         graphics.setClip(drawArea);
         
         // draw all the children
@@ -150,7 +151,7 @@ public class SimpleGroup implements Group, Selectable {
         // reset the damaged area after drawing
         damagedArea = null;
         
-        if (selected || interimSelected) {
+        if ((selected || interimSelected) && selectionFeedback) {
             Rectangle r = new Rectangle(x, y, width - 1, height - 1);
             Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
             Rectangle r2 = new Rectangle(r.x, r.y + r.height - 3, 4, 4);
@@ -433,4 +434,12 @@ public class SimpleGroup implements Group, Selectable {
         return selected;
     }
 
+    private boolean selectionFeedback = true;
+    @Override
+    public void setSelectionFeedback(boolean feedback) {
+        selectionFeedback = feedback;
+        if (group != null) {
+            group.damage(getBoundingBox());
+        }
+    }
 }

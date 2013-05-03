@@ -151,7 +151,7 @@ public class Text implements GraphicalObject, Selectable {
         graphics.setFont(font);
         graphics.drawString(text, x, y);
         
-        if (selected || interimSelected) {
+        if ((selected || interimSelected) && selectionFeedback) {
             Rectangle r = new BoundaryRectangle(x + (int)bounds.getX(), 
                     y + (int)bounds.getY(), 
                     (int)bounds.getWidth() - 1, 
@@ -281,5 +281,14 @@ public class Text implements GraphicalObject, Selectable {
     @Override
     public boolean isSelected() {
         return selected;
+    }
+    
+    private boolean selectionFeedback = true;
+    @Override
+    public void setSelectionFeedback(boolean feedback) {
+        selectionFeedback = feedback;
+        if (group != null) {
+            group.damage(getBoundingBox());
+        }
     }
 }

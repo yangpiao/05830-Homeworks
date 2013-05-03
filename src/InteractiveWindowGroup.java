@@ -9,6 +9,14 @@ public class InteractiveWindowGroup extends WindowGroup {
     private ArrayList<Behavior> behaviors = new ArrayList<Behavior>();
     private Behavior current = null;
     
+    private boolean testMode = true;
+    public boolean getTestMode() {
+        return testMode;
+    }
+    public void setTestMode(boolean t) {
+        testMode = t;
+    }
+    
     private BehaviorEvent wrapEvent(InputEvent e) {
         int id = e.getID(), bid = -1, modifiers = 0, key = 0, x = 0, y = 0;
         int type = 0;
@@ -163,7 +171,7 @@ public class InteractiveWindowGroup extends WindowGroup {
             }
             // if the event does not match any behavior, and the event is 
             // mouse-down, call unpause()
-            if (be.getID() == BehaviorEvent.MOUSE_DOWN_ID) {
+            if (testMode && be.getID() == BehaviorEvent.MOUSE_DOWN_ID) {
                 unpause();
             }
         }

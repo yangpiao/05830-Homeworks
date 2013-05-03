@@ -236,4 +236,13 @@ public class SelectionHandles implements Group, Selectable {
     public boolean isSelected() {
         return selected;
     }
+    
+//    private boolean selectionFeedback = true;
+    @Override
+    public void setSelectionFeedback(boolean feedback) {
+//        selectionFeedback = feedback;
+//        if (group != null) {
+//            group.damage(getBoundingBox());
+//        }
+    }
 }

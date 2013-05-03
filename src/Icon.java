@@ -76,7 +76,7 @@ public class Icon implements GraphicalObject, Selectable {
         graphics.setClip(clipShape);
         graphics.drawImage(image, x, y, null);
         
-        if (selected || interimSelected) {
+        if ((selected || interimSelected) && selectionFeedback) {
             Rectangle r = new Rectangle(x, y, 
                     image.getWidth(null) - 1, image.getHeight(null) - 1);
             Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
@@ -198,5 +198,14 @@ public class Icon implements GraphicalObject, Selectable {
     @Override
     public boolean isSelected() {
         return selected;
+    }
+    
+    private boolean selectionFeedback = true;
+    @Override
+    public void setSelectionFeedback(boolean feedback) {
+        selectionFeedback = feedback;
+        if (group != null) {
+            group.damage(getBoundingBox());
+        }
     }
 }

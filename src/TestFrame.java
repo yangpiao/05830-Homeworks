@@ -252,4 +252,6 @@ public class TestFrame extends JFrame implements Group {
 		ax = af;
 	}
 
+    public void setSelectionFeedback(boolean feedback) {
+    }
 }

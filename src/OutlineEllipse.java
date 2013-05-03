@@ -157,28 +157,30 @@ public class OutlineEllipse implements GraphicalObject, Selectable {
         graphics.setStroke(new BasicStroke(lineThickness));
         graphics.setColor(color);
         graphics.drawOval(rect.x, rect.y, rect.width, rect.height);
-        // Rectangle r = rect;
-        Rectangle r = new Rectangle(x, y, width - 1, height - 1);
-        Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
-        Rectangle r2 = new Rectangle(r.x, r.y + r.height - 3, 4, 4);
-        Rectangle r3 = new Rectangle(r.x + r.width - 3, r.y, 4, 4);
-        Rectangle r4 = new Rectangle(r.x + r.width - 3, 
-                r.y + r.height - 3, 4, 4);
-        graphics.setStroke(new BasicStroke(1));
-        if (selected && !interimSelected) {
-            graphics.setColor(Color.darkGray);
-            graphics.draw(r);
-            graphics.fill(r1);
-            graphics.fill(r2);
-            graphics.fill(r3);
-            graphics.fill(r4);
-        } else if (interimSelected) {
-            graphics.setColor(Color.lightGray);
-            graphics.draw(r);
-            graphics.fill(r1);
-            graphics.fill(r2);
-            graphics.fill(r3);
-            graphics.fill(r4);
+        if ((selected || interimSelected) && selectionFeedback) {
+            // Rectangle r = rect;
+            Rectangle r = new Rectangle(x, y, width - 1, height - 1);
+            Rectangle r1 = new Rectangle(r.x, r.y, 4, 4);
+            Rectangle r2 = new Rectangle(r.x, r.y + r.height - 3, 4, 4);
+            Rectangle r3 = new Rectangle(r.x + r.width - 3, r.y, 4, 4);
+            Rectangle r4 = new Rectangle(r.x + r.width - 3, 
+                    r.y + r.height - 3, 4, 4);
+            graphics.setStroke(new BasicStroke(1));
+            if (selected && !interimSelected) {
+                graphics.setColor(Color.darkGray);
+                graphics.draw(r);
+                graphics.fill(r1);
+                graphics.fill(r2);
+                graphics.fill(r3);
+                graphics.fill(r4);
+            } else if (interimSelected) {
+                graphics.setColor(Color.lightGray);
+                graphics.draw(r);
+                graphics.fill(r1);
+                graphics.fill(r2);
+                graphics.fill(r3);
+                graphics.fill(r4);
+            }
         }
     }
 
@@ -284,4 +286,12 @@ public class OutlineEllipse implements GraphicalObject, Selectable {
         return selected;
     }
 
+    private boolean selectionFeedback = true;
+    @Override
+    public void setSelectionFeedback(boolean feedback) {
+        selectionFeedback = feedback;
+        if (group != null) {
+            group.damage(getBoundingBox());
+        }
+    }
 }

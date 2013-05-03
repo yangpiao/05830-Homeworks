@@ -160,11 +160,15 @@ public class NewEdgeBehavior extends NewBehavior {
                         List<ConstraintVariable> src) {
                     if (src.size() < 4) return;
                     Line line = (Line) t.getObject();
-                    int offset = 7;
-                    line.setX1((int)src.get(0).getValue() + offset);
-                    line.setY1((int)src.get(1).getValue() + offset);
-                    line.setX2((int)src.get(2).getValue() + offset);
-                    line.setY2((int)src.get(3).getValue() + offset);
+                    FilledRect s = (FilledRect) src.get(0).getObject();
+                    FilledRect e = (FilledRect) src.get(2).getObject();
+                    // int offset = 7;
+                    int startOffset = s.getWidth() / 2;
+                    int endOffset = e.getWidth() / 2;
+                    line.setX1((int)src.get(0).getValue() + startOffset);
+                    line.setY1((int)src.get(1).getValue() + startOffset);
+                    line.setX2((int)src.get(2).getValue() + endOffset);
+                    line.setY2((int)src.get(3).getValue() + endOffset);
                 }
             }).addToSystem();
     }

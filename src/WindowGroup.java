@@ -69,7 +69,8 @@ public class WindowGroup extends JFrame implements Group {
     // Drawing GraphicalObjects in the window.
     //
     BoundaryRectangle savedClipRect = null;
-    LinkedList<GraphicalObject> children = new LinkedList<GraphicalObject> ();
+    protected List<GraphicalObject> children = 
+            Collections.synchronizedList(new LinkedList<GraphicalObject> ());
 
     //
     // Drawing GraphicalObjects in the window.
@@ -97,22 +98,22 @@ public class WindowGroup extends JFrame implements Group {
 //        savedClipRect = null;
         
     	if (savedClipRect != null) {
-    	    Graphics2D g = (Graphics2D) buffer.getGraphics ();
-            g.setColor (canvas.getBackground ());
+    	    Graphics2D g = (Graphics2D) buffer.getGraphics();
+            g.setColor(canvas.getBackground());
             g.fill (savedClipRect);
             Rectangle area = canvas.getBounds();
-    	    for (ListIterator<GraphicalObject> iter = children.listIterator (); iter.hasNext (); ) {
-    	    	GraphicalObject gobj = iter.next ();
-    	    	BoundaryRectangle r = gobj.getBoundingBox ();
-    	    	// gobj.draw(g, r);
-    	    	// if (r.intersects (savedClipRect))
-    	    	// 	gobj.draw (g, savedClipRect);
-    	    	if (r.intersects (area))
-                    gobj.draw (g, area);
-    	    }
+            synchronized (children) {
+        	    for (GraphicalObject gobj : children) {
+        	    	BoundaryRectangle r = gobj.getBoundingBox();
+        	    	// gobj.draw(g, r);
+        	    	// if (r.intersects(savedClipRect))
+        	    	// 	gobj.draw(g, savedClipRect);
+        	    	if (r.intersects(area))
+                        gobj.draw(g, area);
+        	    }
+            }
     	    savedClipRect = null;
     	} else {
-    	    // TODO NEED FIX: "no clip rect" errors
     	    // println("no clip rectangle");
     	}
     }
@@ -304,4 +305,6 @@ public class WindowGroup extends JFrame implements Group {
         return null;
     }
 
+    public void setSelectionFeedback(boolean feedback) {
+    }
 }
